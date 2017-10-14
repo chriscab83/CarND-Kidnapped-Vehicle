@@ -43,6 +43,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   weights.resize(num_particles);
   particles.resize(num_particles);
 
+  // init each particle and weight.
   for (int i = 0; i < num_particles; ++i) {
     weights[i] = 1.0;
 
@@ -71,11 +72,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
   normal_distribution<double> dist_y(0, std_y);
   normal_distribution<double> dist_theta(0, std_theta);
 
+  // foreach particle: calculate new expected position after control input.
   for (int i = 0; i < num_particles; ++i) {
     double x = particles[i].x;
     double y = particles[i].y;
     double theta = particles[i].theta;
 
+    // if no yaw_rate: calc x and y position using shortcut to avoid div_0.
     if (fabs(yaw_rate) < EPS) {
       double v_dt = velocity * delta_t;
 
@@ -91,6 +94,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
       theta += yr_dt;
     }
 
+    // save calculated values back to particle with noise distribution.
     particles[i].x = x + dist_x(gen);
     particles[i].y = y + dist_y(gen);
     particles[i].theta = theta + dist_theta(gen);
@@ -103,12 +107,16 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
 
+  // foreach observation: find closest predicted landmark.
   for (int i = 0; i < observations.size(); ++i) {
-    double min_distance = -1;
+    double min_distance = -1; // min_distance will be >= 0, so -1 is a good test for first run.
 
+    // foreach prediction: test distance against min distance.
     for (int j = 0; j < predicted.size(); ++j) {
       double distance = dist(observations[i].x, observations[i].y, predicted[j].x, predicted[j].y);
 
+      //  if distance is less than current min or it is the first run: 
+      //    set new min && set observation's new predicted id.
       if (distance < min_distance || min_distance < 0) {
         min_distance = distance;
         observations[i].id = predicted[j].id;
@@ -218,9 +226,11 @@ void ParticleFilter::resample() {
   std::default_random_engine gen;
   std::discrete_distribution<int> dist_w(weights.begin(), weights.end());
 
+  // use discrete distribution of weights to pick new particles
   for (int i = 0; i < num_particles; ++i) {
     n_particles.push_back(particles[dist_w(gen)]);
   }
+
   particles = n_particles;
 }
 
