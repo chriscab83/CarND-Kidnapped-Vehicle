@@ -31,7 +31,6 @@ class ParticleFilter {
 	
 	// Vector of weights of all particles
 	std::vector<double> weights;
-	
 
 public:
 	// Set of current particles
@@ -97,7 +96,7 @@ public:
 	 */
 	Particle SetAssociations(Particle particle, std::vector<int> associations, 
 		std::vector<double> sense_x, std::vector<double> sense_y);
-	
+
 	std::string getAssociations(Particle best);
 	std::string getSenseX(Particle best);
 	std::string getSenseY(Particle best);
